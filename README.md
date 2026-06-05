@@ -3,11 +3,24 @@
 サーボモータ一つで、目、舌、腕(×2)の３組のパーツを動かします。
 適切なギアを設計して、動作を実現します。
 
-そのほか、スピーカーを搭載し、土が乾いている時、水が与えられ潤った時、十分に土が湿っている時にそれぞれに割り当てられた音声を再生します
+そのほか、スピーカーを搭載し、土が乾いている時、水が与えられ潤った時、十分に土が湿っている時にそれぞれに割り当てられた音声を再生します。（オプション）
 
 ---
 
 ## パーツリスト
+
+| パーツ | 型番 | 入手先 | 単価 |
+|---|---|---|---|
+| マイコン | RP2040-Zero | - | - |
+| 静電容量式土壌水分センサー | ノーブランド | - | - |
+| サーボモータ | SG90S | [秋月電子 108761](https://akizukidenshi.com/catalog/g/g108761/) | ¥650 |
+| ロードスイッチ | TCK108AF | [秋月電子 116073](https://akizukidenshi.com/catalog/g/g116073/) | ¥150 |
+| セラミックコンデンサ | 100μF | - | - |
+| (*オプション) 圧電スピーカ | PKM13EPYH4000-A0 | [秋月電子 104118](https://akizukidenshi.com/catalog/g/g104118/) | ¥30 |
+
+---
+
+### 回路の概要
 
 バッテリーから電源を供給し、RP2040-Zeroで水分センサーの値を読み取り、TCK108AF（ロードスイッチ）を介してサーボモーターの電源を制御する構成
 
@@ -18,18 +31,14 @@
 | **RP2040-Zero** | 28ピン | Moisture Sensor (3ピン) | - |
 | **RP2040-Zero** | 27ピン | Moisture Sensor (2ピン) | - |
 | **RP2040-Zero** | 26ピン | Moisture Sensor (1ピン) | - |
-| **RP2040-Zero** | 9ピン | TCK108AF (3ピン: CONTROL) | 電源ON/OFF制御 |
+| **RP2040-Zero** | 4ピン | TCK108AF (3ピン: CONTROL) | 電源ON/OFF制御 |
 | **TCK108AF** | 1ピン (VOUT) | Servo (1ピン) | サーボ電源出力 |
-| **TCK108AF** | 2ピン (GND) | GND | - |
-| **TCK108AF** | 5ピン (VIN) | +5V (バッテリー側) | - |
-| **Servo** | 2ピン | RP2040-Zero (4ピン) | 信号線？ |
-| **Servo** | 3ピン | GND | - |
+| **TCK108AF** | 2ピン (GND) | RP2040-Zero (31ピン: GND) | グランド|
+| **TCK108AF** | 5ピン (VIN) | +5V (バッテリー側) | 電源供給 |
+| **Servo** | 2ピン | RP2040-Zero (9ピン: PWM) | 信号線 |
+| **Servo** | 3ピン | RP2040-Zero (31ピン: GND) | グランド |
 | **C1 (コンデンサ)** | + | TCK108AF (1ピン: VOUT) | 平滑用 |
 | **C1 (コンデンサ)** | - | GND | - |
-
----
-
-### 回路の概要
 
 ```mermaid
 graph TD
@@ -44,8 +53,8 @@ graph TD
         P28[Pin 28]
         P27[Pin 27]
         P26[Pin 26]
-        P9[Pin 9: CONTROL]
-        P4[Pin 4: Signal]
+        P9[Pin 4: CONTROL]
+        P4[Pin 9: Signal]
     end
 
     %% スイッチ
@@ -86,10 +95,10 @@ graph TD
     P27 --- MS2
     P26 --- MS1
 
-    P9 --> U2_3
+    P9 --> SV2
     U2_1 --> SV1
     U2_1 --> C_Pos
-    P4 --> SV2
+    P4 --> U2_3
 
     %% スタイル定義
     classDef power fill:#f9f,stroke:#333,stroke-width:2px;
@@ -99,7 +108,7 @@ graph TD
 * **RP2040-Zero**: システムの中枢です。
 * **水分センサー (Moisture Sensor)**: 26, 27, 28ピンを使用してデータを取得しています。
 * **サーボモーター制御**:
-* TCK108AFはロードスイッチ（パワーゲート）です。RP2040-Zeroの9ピン（CONTROL）から信号を送ることで、サーボモーターへの電源供給をオンオフする仕組みになっています。
+* TCK108AFはロードスイッチ（パワーゲート）です。RP2040-Zeroの4ピン（CONTROL）から信号を送ることで、サーボモーターへの電源供給をオンオフする仕組みになっています。サーボモーターのPWM信号はRP2040-Zeroの9ピンから送ります。
 * これにより、必要な時だけサーボを動かす省電力設計が可能です。
 * **電源**: J3/J4から入力された5VがそのままRP2040-Zeroに供給され、そこから分岐してTCK108AFのVIN（5ピン）に入っています。
 
@@ -195,8 +204,8 @@ rp2040-zero/
 
 | 変数名 | 初期値 | 説明 |
 | --- | --- | --- |
-| `SERVO_SIGNAL_PIN` | `board.GP4` | サーボ信号線の接続先 |
-| `LOAD_SWITCH_PIN` | `board.GP9` | TCK108AF の CONTROL ピン |
+| `SERVO_SIGNAL_PIN` | `board.GP9` | サーボ信号線の接続先 |
+| `LOAD_SWITCH_PIN` | `board.GP4` | TCK108AF の CONTROL ピン |
 | `MOISTURE_ANALOG_PIN` | `board.GP26` | 水分センサーのアナログ入力 |
 | `SPEAKER_PIN` | `None` | 圧電スピーカーのピン。未実装時は `None` |
 | `DRY_RAW` | `52000` | 乾燥状態として扱う ADC 生値 |
