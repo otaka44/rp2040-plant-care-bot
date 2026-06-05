@@ -9,25 +9,25 @@ from lib.servo_controller import ServoController
 
 
 # Hardware pin mapping (RP2040-Zero + schematic in README)
-SERVO_SIGNAL_PIN = board.GP4
-LOAD_SWITCH_PIN = board.GP9
+SERVO_SIGNAL_PIN = board.GP9
+LOAD_SWITCH_PIN = board.GP4
 MOISTURE_ANALOG_PIN = board.GP26
 
 # Set to None if speaker is not mounted yet.
 SPEAKER_PIN = None
 
 # Moisture calibration (adjust later from measured values)
-DRY_RAW = 52000
-WET_RAW = 20000
+DRY_RAW = 11420
+WET_RAW = 8731
 
 # Decision thresholds for soil condition [percent]
 DRY_THRESHOLD = 35.0
 WET_THRESHOLD = 70.0
 
 # Servo target angles by soil state
-ANGLE_DRY = 150
-ANGLE_MOIST = 90
-ANGLE_WET = 30
+ANGLE_DRY = 90
+ANGLE_MOIST = 30
+ANGLE_WET = 150
 
 # Main loop interval [seconds]
 READ_INTERVAL_SEC = 5.0
