@@ -6,6 +6,8 @@ from lib.moisture_sensor import MoistureSensor
 
 
 MOISTURE_ANALOG_PIN = board.GP26
+MOISTURE_VCC_PIN = board.GP27
+MOISTURE_GND_PIN = board.GP28
 SAMPLE_COUNT = 20
 SAMPLE_INTERVAL_SEC = 0.1
 
@@ -56,7 +58,11 @@ def print_result(dry_raw, wet_raw):
 
 
 def main():
-    sensor = MoistureSensor(MOISTURE_ANALOG_PIN)
+    sensor = MoistureSensor(
+        MOISTURE_ANALOG_PIN,
+        vcc_pin=MOISTURE_VCC_PIN,
+        gnd_pin=MOISTURE_GND_PIN,
+    )
 
     print("Soil moisture calibration tool")
     print("Thonny から実行し、表示に従って Enter を押してください")
